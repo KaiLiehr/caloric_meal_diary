@@ -28,17 +28,10 @@ class _MainNavigationScreenState
     IngredientsScreen(),
   ];
 
-  final List<String> _titles = [
-    'Dashboard',
-    'Meal Diary',
-    'Recipies',
-    'Ingredients',
-  ];
-
 
   @override
   Widget build(BuildContext context) {
-    print("PRINT:Building MainNavigationScreen");
+    //print("PRINT:Building MainNavigationScreen");
     return Scaffold(
 
       // should preserve scroll position on screen switch, not tested yet
