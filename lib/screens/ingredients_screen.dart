@@ -30,17 +30,17 @@ class _IngredientsScreenState extends State<IngredientsScreen> {
     });
   }
 
-  // Logic for Button to add new Ingredient
-  Future<void> _showAddIngredientDialog() async {
-    final nameController = TextEditingController();
-    final caloriesController = TextEditingController();
-    String selectedUnit = 'g';
+  // Dialogue logic used for both add and edit Ingredient
+  Future<void> _showIngredientDialog(Ingredient? existing) async {
+    final nameController = TextEditingController(text: existing?.name ?? '',);
+    final caloriesController = TextEditingController(text: existing?.caloriesPer100.toString() ?? '',);
+    String selectedUnit = existing?.unit ?? 'g';
 
     await showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Add Ingredient'),
+          title: Text(existing == null ? 'Add Ingredient' : 'Edit Ingredient',),
           content: StatefulBuilder(
             builder: (context, setDialogState) {
               return Column(
@@ -93,13 +93,27 @@ class _IngredientsScreenState extends State<IngredientsScreen> {
 
                 if (name.isEmpty || calories == null) return;
 
-                final ingredient = Ingredient(
-                  name: name,
-                  caloriesPer100: calories,
-                  unit: selectedUnit,
-                );
+                if (existing == null) {
+                  // CREATE
+                  final ingredient = Ingredient(
+                    name: name,
+                    caloriesPer100: calories,
+                    unit: selectedUnit,
+                  );
 
-                await DatabaseHelper.instance.insertIngredient(ingredient);
+                  await DatabaseHelper.instance.insertIngredient(ingredient);
+                } else {
+                  // UPDATE
+                  final updated = Ingredient(
+                    id: existing.id,
+                    name: name,
+                    caloriesPer100: calories,
+                    unit: selectedUnit,
+                  );
+
+                  await DatabaseHelper.instance.updateIngredient(updated);
+                }
+
                 await loadIngredients();
 
                 if (mounted) {
@@ -154,12 +168,15 @@ class _IngredientsScreenState extends State<IngredientsScreen> {
               subtitle: Text(
                 '${ingredient.caloriesPer100} kcal / 100${ingredient.unit}',
               ),
+              onTap: () {
+                _showIngredientDialog(ingredient);
+              },
             ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showAddIngredientDialog,
+        onPressed: () => _showIngredientDialog(null),
         child: const Icon(Icons.add),
       ),
     ) ;
