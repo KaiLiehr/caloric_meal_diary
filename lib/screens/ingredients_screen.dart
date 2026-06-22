@@ -33,6 +33,7 @@ class _IngredientsScreenState extends State<IngredientsScreen> {
   // Dialogue logic used for both add and edit Ingredient
   Future<void> _showIngredientDialog(Ingredient? existing) async {
     final nameController = TextEditingController(text: existing?.name ?? '',);
+    final brandController = TextEditingController(text: existing?.brand ?? '',);
     final caloriesController = TextEditingController(text: existing?.caloriesPer100.toString() ?? '',);
     String selectedUnit = existing?.unit ?? 'g';
 
@@ -50,6 +51,13 @@ class _IngredientsScreenState extends State<IngredientsScreen> {
                     controller: nameController,
                     decoration: const InputDecoration(
                       labelText: 'Name',
+                    ),
+                  ),
+
+                  TextField(
+                    controller: brandController,
+                    decoration: const InputDecoration(
+                      labelText: 'Brand',
                     ),
                   ),
 
@@ -88,15 +96,17 @@ class _IngredientsScreenState extends State<IngredientsScreen> {
             ElevatedButton(
               onPressed: () async {
                 final name = nameController.text.trim();
+                final brand = brandController.text.trim();
                 final calories =
                     double.tryParse(caloriesController.text);
 
                 if (name.isEmpty || calories == null) return;
 
                 if (existing == null) {
-                  // CREATE
+                  // CREATE NEW
                   final ingredient = Ingredient(
                     name: name,
+                    brand: brand,
                     caloriesPer100: calories,
                     unit: selectedUnit,
                   );
@@ -107,6 +117,7 @@ class _IngredientsScreenState extends State<IngredientsScreen> {
                   final updated = Ingredient(
                     id: existing.id,
                     name: name,
+                    brand: brand,
                     caloriesPer100: calories,
                     unit: selectedUnit,
                   );
@@ -164,7 +175,7 @@ class _IngredientsScreenState extends State<IngredientsScreen> {
             },
 
             child: ListTile(
-              title: Text(ingredient.name),
+              title: Text(ingredient.name + (ingredient.brand.isNotEmpty ? ' (${ingredient.brand})' : ''),),
               subtitle: Text(
                 '${ingredient.caloriesPer100} kcal / 100${ingredient.unit}',
               ),

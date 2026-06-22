@@ -33,12 +33,13 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _createDatabase,
+      onUpgrade: _onUpgrade,
     );
   }
   // -------------------------------------------------------------- Database TABLE SCHEMA --------------------------------------------------------------
-  // TODO: Add meal_category to meal entries, Add brand to ingredient, restrict unit for ingredient
+  // TODO: Add meal_category to meal entries
   Future<void> _createDatabase(Database db, int version,) async {
 
     await db.execute('''
@@ -55,6 +56,7 @@ class DatabaseHelper {
     CREATE TABLE ingredients(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
+      brand Text,
       calories_per_100 REAL NOT NULL,
       unit TEXT NOT NULL
     )
@@ -107,6 +109,18 @@ class DatabaseHelper {
       calories REAL NOT NULL
     )
     ''');
+  }
+
+  Future<void> _onUpgrade(
+    Database db,
+    int oldVersion,
+    int newVersion,
+  ) async {
+    if (oldVersion < 2) {
+      await db.execute(
+        'ALTER TABLE ingredients ADD COLUMN brand TEXT'
+      );
+    }
   }
 
   // -------------------------------------------------------------- Database CRUD Methods --------------------------------------------------------------
