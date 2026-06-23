@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sqflite/sqflite.dart';
 
 import '../models/ingredient.dart';
 import '../database/database_helper.dart';
@@ -30,110 +31,176 @@ class _IngredientsScreenState extends State<IngredientsScreen> {
     });
   }
 
-  // Dialogue logic used for both add and edit Ingredient
+  // Dialog logic used for both add and edit Ingredient
   Future<void> _showIngredientDialog(Ingredient? existing) async {
     final nameController = TextEditingController(text: existing?.name ?? '',);
     final brandController = TextEditingController(text: existing?.brand ?? '',);
     final caloriesController = TextEditingController(text: existing?.caloriesPer100.toString() ?? '',);
     String selectedUnit = existing?.unit ?? 'g';
 
+    String? errorMessage;
+
     await showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text(existing == null ? 'Add Ingredient' : 'Edit Ingredient',),
-          content: StatefulBuilder(
-            builder: (context, setDialogState) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Name',
-                    ),
-                  ),
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(existing == null ? 'Add Ingredient' : 'Edit Ingredient',),
+              content: StatefulBuilder(
+                builder: (context, setDialogState) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: nameController,
+                        onChanged: (_) {
+                          if (errorMessage != null) {
+                            setDialogState(() {
+                              errorMessage = null;
+                            });
+                          }
+                        },
+                        decoration: const InputDecoration(
+                          labelText: 'Name',
+                        ),
+                      ),
 
-                  TextField(
-                    controller: brandController,
-                    decoration: const InputDecoration(
-                      labelText: 'Brand',
-                    ),
-                  ),
+                      TextField(
+                        controller: brandController,
+                        onChanged: (_) {
+                          if (errorMessage != null) {
+                            setDialogState(() {
+                              errorMessage = null;
+                            });
+                          }
+                        },
+                        decoration: const InputDecoration(
+                          labelText: 'Brand',
+                        ),
+                      ),
 
-                  TextField(
-                    controller: caloriesController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Calories per 100',
-                    ),
-                  ),
+                      TextField(
+                        controller: caloriesController,
+                        onChanged: (_) {
+                          if (errorMessage != null) {
+                            setDialogState(() {
+                              errorMessage = null;
+                            });
+                          }
+                        },
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Calories per 100',
+                        ),
+                      ),
 
-                  const SizedBox(height: 12),
+                      const SizedBox(height: 12),
 
-                  DropdownButton<String>(
-                    value: selectedUnit,
-                    items: const [
-                      DropdownMenuItem(value: 'g', child: Text('g')),
-                      DropdownMenuItem(value: 'ml', child: Text('ml')),
+                      DropdownButton<String>(
+                        value: selectedUnit,
+                        items: const [
+                          DropdownMenuItem(value: 'g', child: Text('g')),
+                          DropdownMenuItem(value: 'ml', child: Text('ml')),
+                        ],
+                        onChanged: (value) {
+                          setDialogState(() {
+                            selectedUnit = value!;
+                          });
+                        },
+                      ),
+
+                      if (errorMessage != null) Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Text(
+                          errorMessage!,
+                          style: const TextStyle(
+                            color: Colors.red,
+                          ),
+                        ),
+                      ),
                     ],
-                    onChanged: (value) {
+                  );
+                },
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+
+                ElevatedButton(
+                  onPressed: () async {
+                    final name = nameController.text.trim();
+                    final brand = brandController.text.trim();
+                    final calories =
+                        double.tryParse(caloriesController.text);
+
+                    if (name.isEmpty) {
                       setDialogState(() {
-                        selectedUnit = value!;
+                        errorMessage =
+                            'Please enter a valid name.';
                       });
-                    },
-                  ),
-                ],
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
+                      return;
+                    }
 
-            ElevatedButton(
-              onPressed: () async {
-                final name = nameController.text.trim();
-                final brand = brandController.text.trim();
-                final calories =
-                    double.tryParse(caloriesController.text);
+                    if (calories == null) {
+                      setDialogState(() {
+                        errorMessage =
+                            'Please enter a valid calories value.';
+                      });
+                      return;
+                    }
 
-                if (name.isEmpty || calories == null) return;
+                    try{
+                      if (existing == null) {
+                        // CREATE NEW
+                        final ingredient = Ingredient(
+                          name: name,
+                          brand: brand,
+                          caloriesPer100: calories,
+                          unit: selectedUnit,
+                        );
 
-                if (existing == null) {
-                  // CREATE NEW
-                  final ingredient = Ingredient(
-                    name: name,
-                    brand: brand,
-                    caloriesPer100: calories,
-                    unit: selectedUnit,
-                  );
+                        await DatabaseHelper.instance.insertIngredient(ingredient);
+                      } else {
+                        // UPDATE
+                        final updated = Ingredient(
+                          id: existing.id,
+                          name: name,
+                          brand: brand,
+                          caloriesPer100: calories,
+                          unit: selectedUnit,
+                        );
 
-                  await DatabaseHelper.instance.insertIngredient(ingredient);
-                } else {
-                  // UPDATE
-                  final updated = Ingredient(
-                    id: existing.id,
-                    name: name,
-                    brand: brand,
-                    caloriesPer100: calories,
-                    unit: selectedUnit,
-                  );
+                        await DatabaseHelper.instance.updateIngredient(updated);
+                      }
 
-                  await DatabaseHelper.instance.updateIngredient(updated);
-                }
+                      await loadIngredients();
 
-                await loadIngredients();
+                      if (mounted) {
+                        Navigator.pop(context);
+                      }
+                    } catch (e) {
+                      String message = 'Failed to save ingredient.';
 
-                if (mounted) {
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text('Save'),
-            ),
-          ],
+                      if (e is DatabaseException) {
+                        if (e.isUniqueConstraintError()) {
+                          message =
+                              'An ingredient with this combination of name and brand already exists.';
+                        }
+                      }
+
+                      setDialogState(() {
+                        errorMessage = message;
+                      });
+                    }
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
