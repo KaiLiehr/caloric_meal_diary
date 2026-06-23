@@ -22,6 +22,8 @@ class DatabaseHelper {
     return _database!;
   }
 
+  // Toggle to delete current db and create new one
+  static const bool recreateDb = true;
   // init db
   Future<Database> _initDatabase() async {
     final databasePath = await getDatabasesPath();
@@ -31,9 +33,13 @@ class DatabaseHelper {
       'calorie_tracker.db',
     );
 
+    if (recreateDb) {
+      await deleteDatabase(path);
+    }
+
     return await openDatabase(
       path,
-      version: 2,
+      version: 1,
       onCreate: _createDatabase,
       onUpgrade: _onUpgrade,
     );
@@ -56,9 +62,11 @@ class DatabaseHelper {
     CREATE TABLE ingredients(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      brand Text,
+      brand Text NOT NULL DEFAULT '',
       calories_per_100 REAL NOT NULL,
-      unit TEXT NOT NULL
+      unit TEXT NOT NULL,
+
+      UNIQUE(name, brand)
     )
     ''');
 
@@ -116,11 +124,7 @@ class DatabaseHelper {
     int oldVersion,
     int newVersion,
   ) async {
-    if (oldVersion < 2) {
-      await db.execute(
-        'ALTER TABLE ingredients ADD COLUMN brand TEXT'
-      );
-    }
+
   }
 
   // -------------------------------------------------------------- Database CRUD Methods --------------------------------------------------------------
