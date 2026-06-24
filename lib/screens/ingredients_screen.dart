@@ -50,107 +50,109 @@ class _IngredientsScreenState extends State<IngredientsScreen> {
               title: Text(existing == null ? 'Add Ingredient' : 'Edit Ingredient',),
               content: StatefulBuilder(
                 builder: (context, setDialogState) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextField(
-                        controller: nameController,
-                        onChanged: (_) {
-                          if (errorMessage != null) {
-                            setDialogState(() {
-                              errorMessage = null;
-                            });
-                          }
-                        },
-                        decoration: const InputDecoration(
-                          labelText: 'Name',
-                          hintText: 'e.g. Pasta',
+                  return SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextField(
+                          controller: nameController,
+                          onChanged: (_) {
+                            if (errorMessage != null) {
+                              setDialogState(() {
+                                errorMessage = null;
+                              });
+                            }
+                          },
+                          decoration: const InputDecoration(
+                            labelText: 'Name',
+                            hintText: 'e.g. Pasta',
+                          ),
                         ),
-                      ),
 
-                      TextField(
-                        controller: brandController,
-                        onChanged: (_) {
-                          if (errorMessage != null) {
-                            setDialogState(() {
-                              errorMessage = null;
-                            });
-                          }
-                        },
-                        decoration: const InputDecoration(
-                          labelText: 'Brand(optional)',
-                          hintText: 'e.g. Barilla',
+                        TextField(
+                          controller: brandController,
+                          onChanged: (_) {
+                            if (errorMessage != null) {
+                              setDialogState(() {
+                                errorMessage = null;
+                              });
+                            }
+                          },
+                          decoration: const InputDecoration(
+                            labelText: 'Brand(optional)',
+                            hintText: 'e.g. Barilla',
+                          ),
                         ),
-                      ),
 
-                      TextField(
-                        controller: caloriesController,
-                        onChanged: (_) {
-                          if (errorMessage != null) {
-                            setDialogState(() {
-                              errorMessage = null;
-                            });
-                          }
-                        },
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: 'Calories(kcal) per 100',
-                          hintText: 'e.g. 463',
+                        TextField(
+                          controller: caloriesController,
+                          onChanged: (_) {
+                            if (errorMessage != null) {
+                              setDialogState(() {
+                                errorMessage = null;
+                              });
+                            }
+                          },
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Calories(kcal) per 100',
+                            hintText: 'e.g. 463',
+                          ),
                         ),
-                      ),
 
-                      const SizedBox(height: 12),
+                        const SizedBox(height: 12),
 
-                      Row(
-                        children: [
-                          const Text(
-                            'Unit:',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
+                        Row(
+                          children: [
+                            const Text(
+                              'Unit:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+
+                            const SizedBox(width: 12),
+
+                            DropdownButton<String>(
+                              value: selectedUnit,
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 'g',
+                                  child: Text('g'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'ml',
+                                  child: Text('ml'),
+                                ),
+                              ],
+                              onChanged: (value) {
+                                setDialogState(() {
+                                  selectedUnit = value!;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+
+                        TextField(
+                          controller: noteController,
+                          decoration: const InputDecoration(
+                            labelText: 'Note(optional)',
+                            hintText: 'e.g. 1 slice=35g',
+                          ),
+                        ),
+
+                        if (errorMessage != null) Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: Text(
+                            errorMessage!,
+                            style: const TextStyle(
+                              color: Colors.red,
                             ),
                           ),
-
-                          const SizedBox(width: 12),
-
-                          DropdownButton<String>(
-                            value: selectedUnit,
-                            items: const [
-                              DropdownMenuItem(
-                                value: 'g',
-                                child: Text('g'),
-                              ),
-                              DropdownMenuItem(
-                                value: 'ml',
-                                child: Text('ml'),
-                              ),
-                            ],
-                            onChanged: (value) {
-                              setDialogState(() {
-                                selectedUnit = value!;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-
-                      TextField(
-                        controller: noteController,
-                        decoration: const InputDecoration(
-                          labelText: 'Note(optional)',
-                          hintText: 'e.g. 1 slice=35g',
                         ),
-                      ),
-
-                      if (errorMessage != null) Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: Text(
-                          errorMessage!,
-                          style: const TextStyle(
-                            color: Colors.red,
-                          ),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   );
                 },
               ),
