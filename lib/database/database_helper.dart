@@ -23,7 +23,7 @@ class DatabaseHelper {
   }
 
   // Toggle to delete current db and create new one
-  static const bool recreateDb = false;
+  static const bool recreateDb = true;
   // init db
   Future<Database> _initDatabase() async {
     final databasePath = await getDatabasesPath();
@@ -65,6 +65,7 @@ class DatabaseHelper {
       brand Text NOT NULL DEFAULT '',
       calories_per_100 REAL NOT NULL,
       unit TEXT NOT NULL,
+      note Text NOT NULL DEFAULT '',
 
       UNIQUE(name, brand)
     )

@@ -36,6 +36,7 @@ class _IngredientsScreenState extends State<IngredientsScreen> {
     final nameController = TextEditingController(text: existing?.name ?? '',);
     final brandController = TextEditingController(text: existing?.brand ?? '',);
     final caloriesController = TextEditingController(text: existing?.caloriesPer100.toString() ?? '',);
+    final noteController = TextEditingController(text: existing?.note ?? '',);
     String selectedUnit = existing?.unit ?? 'g';
 
     String? errorMessage;
@@ -63,6 +64,7 @@ class _IngredientsScreenState extends State<IngredientsScreen> {
                         },
                         decoration: const InputDecoration(
                           labelText: 'Name',
+                          hintText: 'e.g. Pasta',
                         ),
                       ),
 
@@ -76,7 +78,8 @@ class _IngredientsScreenState extends State<IngredientsScreen> {
                           }
                         },
                         decoration: const InputDecoration(
-                          labelText: 'Brand',
+                          labelText: 'Brand(optional)',
+                          hintText: 'e.g. Barilla',
                         ),
                       ),
 
@@ -91,23 +94,51 @@ class _IngredientsScreenState extends State<IngredientsScreen> {
                         },
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
-                          labelText: 'Calories per 100',
+                          labelText: 'Calories(kcal) per 100',
+                          hintText: 'e.g. 463',
                         ),
                       ),
 
                       const SizedBox(height: 12),
 
-                      DropdownButton<String>(
-                        value: selectedUnit,
-                        items: const [
-                          DropdownMenuItem(value: 'g', child: Text('g')),
-                          DropdownMenuItem(value: 'ml', child: Text('ml')),
+                      Row(
+                        children: [
+                          const Text(
+                            'Unit:',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+
+                          const SizedBox(width: 12),
+
+                          DropdownButton<String>(
+                            value: selectedUnit,
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'g',
+                                child: Text('g'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'ml',
+                                child: Text('ml'),
+                              ),
+                            ],
+                            onChanged: (value) {
+                              setDialogState(() {
+                                selectedUnit = value!;
+                              });
+                            },
+                          ),
                         ],
-                        onChanged: (value) {
-                          setDialogState(() {
-                            selectedUnit = value!;
-                          });
-                        },
+                      ),
+
+                      TextField(
+                        controller: noteController,
+                        decoration: const InputDecoration(
+                          labelText: 'Note(optional)',
+                          hintText: 'e.g. 1 slice=35g',
+                        ),
                       ),
 
                       if (errorMessage != null) Padding(
@@ -135,6 +166,7 @@ class _IngredientsScreenState extends State<IngredientsScreen> {
                     final brand = brandController.text.trim();
                     final calories =
                         double.tryParse(caloriesController.text);
+                    final note = noteController.text.trim();
 
                     if (name.isEmpty) {
                       setDialogState(() {
@@ -147,7 +179,7 @@ class _IngredientsScreenState extends State<IngredientsScreen> {
                     if (calories == null) {
                       setDialogState(() {
                         errorMessage =
-                            'Please enter a valid calories value.';
+                            'Please enter a valid calories number.';
                       });
                       return;
                     }
@@ -160,6 +192,7 @@ class _IngredientsScreenState extends State<IngredientsScreen> {
                           brand: brand,
                           caloriesPer100: calories,
                           unit: selectedUnit,
+                          note: note,
                         );
 
                         await DatabaseHelper.instance.insertIngredient(ingredient);
@@ -171,6 +204,7 @@ class _IngredientsScreenState extends State<IngredientsScreen> {
                           brand: brand,
                           caloriesPer100: calories,
                           unit: selectedUnit,
+                          note: note,
                         );
 
                         await DatabaseHelper.instance.updateIngredient(updated);
@@ -243,8 +277,21 @@ class _IngredientsScreenState extends State<IngredientsScreen> {
 
             child: ListTile(
               title: Text(ingredient.name + (ingredient.brand.isNotEmpty ? ' (${ingredient.brand})' : ''),),
-              subtitle: Text(
-                '${ingredient.caloriesPer100} kcal / 100${ingredient.unit}',
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${ingredient.caloriesPer100} kcal / 100${ingredient.unit}',
+                  ),
+
+                  if (ingredient.note.isNotEmpty)
+                    Text(
+                      'Note: ${ingredient.note}',
+                      style: const TextStyle(
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                ],
               ),
               onTap: () {
                 _showIngredientDialog(ingredient);

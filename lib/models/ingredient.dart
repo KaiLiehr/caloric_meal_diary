@@ -4,6 +4,7 @@ class Ingredient {
   final String brand;
   final double caloriesPer100;
   final String unit;
+  final String note;
 
   Ingredient({
     this.id,
@@ -11,7 +12,8 @@ class Ingredient {
     String? brand,
     required this.caloriesPer100,
     required this.unit,
-  }) : brand = brand ?? '';
+    String? note,
+  }) : brand = brand ?? '', note = note ?? '';
 
 
   // Casts Ingredient to map
@@ -22,6 +24,7 @@ class Ingredient {
       'brand': brand,
       'calories_per_100': caloriesPer100,
       'unit': unit,
+      'note': note,
     };
   }
 
@@ -35,6 +38,7 @@ class Ingredient {
       brand: map['brand'] ?? '',
       caloriesPer100: map['calories_per_100'],
       unit: map['unit'],
+      note: map['note'] ?? '',
     );
   }
 }
