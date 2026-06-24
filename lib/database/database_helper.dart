@@ -1,6 +1,9 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+
 import '../models/ingredient.dart';
+import '../models/recipe_template.dart';
+import '../models/recipe_template_ingredient.dart';
 
 class DatabaseHelper {
   DatabaseHelper._privateConstructor();
@@ -74,7 +77,8 @@ class DatabaseHelper {
     await db.execute('''
     CREATE TABLE recipe_templates(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL
+      name TEXT NOT NULL,
+      note Text NOT NULL DEFAULT ''
     )
     ''');
 
@@ -99,7 +103,9 @@ class DatabaseHelper {
 
       calculated_calories REAL NOT NULL,
 
-      adjusted_calories REAL
+      adjusted_calories REAL,
+
+      note Text NOT NULL DEFAULT ''
     )
     ''');
 
@@ -114,6 +120,8 @@ class DatabaseHelper {
       amount REAL NOT NULL,
 
       calories_per_100 REAL NOT NULL,
+
+      unit TEXT NOT NULL,
 
       calories REAL NOT NULL
     )
@@ -179,6 +187,130 @@ class DatabaseHelper {
       'ingredients',
       where: 'id = ?',
       whereArgs: [id],
+    );
+  }
+
+  // Create Recipe Template
+  Future<int> insertRecipeTemplate(
+    RecipeTemplate recipeTemplate,
+  ) async {
+    final db = await database;
+
+    return await db.insert(
+      'recipe_templates',
+      recipeTemplate.toMap(),
+    );
+  }
+
+  // Get all Recipe Templates
+  Future<List<RecipeTemplate>> getRecipeTemplates() async {
+    final db = await database;
+
+    final result = await db.query(
+      'recipe_templates',
+      orderBy: 'name ASC',
+    );
+
+    return result
+        .map((row) => RecipeTemplate.fromMap(row))
+        .toList();
+  }
+
+  // Update Recipe Template
+  Future<int> updateRecipeTemplate(
+    RecipeTemplate recipeTemplate,
+  ) async {
+    final db = await database;
+
+    return await db.update(
+      'recipe_templates',
+      recipeTemplate.toMap(),
+      where: 'id = ?',
+      whereArgs: [recipeTemplate.id],
+    );
+  }
+
+  // Delete Recipe Template
+  Future<int> deleteRecipeTemplate(
+    int id,
+  ) async {
+    final db = await database;
+
+    return await db.delete(
+      'recipe_templates',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  // Create Recipe Template Ingredient/Add Ingredient to Recipe Template
+  Future<int> insertRecipeTemplateIngredient(
+    RecipeTemplateIngredient recipeTemplateIngredient,
+  ) async {
+    final db = await database;
+
+    return await db.insert(
+      'recipe_template_ingredients',
+      recipeTemplateIngredient.toMap(),
+    );
+  }
+
+  // Get Ingredients For given Recipe Template
+  Future<List<RecipeTemplateIngredient>> getTemplateIngredients(int templateId,) async {
+    final db = await database;
+
+    final result = await db.query(
+      'recipe_template_ingredients',
+      where: 'template_id = ?',
+      whereArgs: [templateId],
+    );
+
+    return result.map((row) => RecipeTemplateIngredient.fromMap(row)).toList();
+  }
+
+  // Update Recipe Template Ingredient
+  Future<int> updateRecipeTemplateIngredient(
+    RecipeTemplateIngredient recipeTemplateIngredient,
+  ) async {
+    final db = await database;
+
+    return await db.update(
+      'recipe_template_ingredients',
+      recipeTemplateIngredient.toMap(),
+      where: 'id = ?',
+      whereArgs: [recipeTemplateIngredient.id],
+    );
+  }
+
+  // Delete Recipe Template Ingredient
+  Future<int> deleteRecipeTemplateIngredient(
+    int id,
+  ) async {
+    final db = await database;
+
+    return await db.delete(
+      'recipe_template_ingredients',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  // Deletes the given Recipe Template and all its associated Recipe Template Ingredients
+  Future<void> deleteTemplateWithIngredients(
+    int templateId,
+  ) async {
+    final db = await database;
+
+    await db.delete(
+      'recipe_template_ingredients',
+      where: 'template_id = ?',
+      whereArgs: [templateId],
+    );
+
+    await db.delete(
+      'recipe_templates',
+      where: 'id = ?',
+      whereArgs: [templateId],
     );
   }
 }
