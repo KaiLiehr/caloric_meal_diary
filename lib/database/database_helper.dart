@@ -26,7 +26,7 @@ class DatabaseHelper {
   }
 
   // Toggle to delete current db and create new one
-  static const bool recreateDb = true;
+  static const bool recreateDb = false;
   // init db
   Future<Database> _initDatabase() async {
     final databasePath = await getDatabasesPath();

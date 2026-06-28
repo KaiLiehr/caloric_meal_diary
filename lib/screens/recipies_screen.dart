@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../database/database_helper.dart';
 import '../models/recipe_template.dart';
+import 'recipe_template_detail_screen.dart';
 
 class RecipiesScreen extends StatefulWidget {
   const RecipiesScreen({super.key});
@@ -159,6 +160,17 @@ class _RecipiesScreenState
                   : null,
 
               onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        RecipeTemplateDetailScreen(
+                          template: template,
+                        ),
+                  ),
+                );
+              },
+              onLongPress: () {
                 _showTemplateDialog(template);
               },
             ),
